@@ -2,18 +2,16 @@ package com.gameclicker.pages;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.openqa.selenium.By;
-import org.openqa.selenium.StaleElementReferenceException;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.pagefactory.AjaxElementLocatorFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Wait;
+import ru.yandex.qatools.allure.annotations.Step;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -21,6 +19,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+
+import static org.testng.AssertJUnit.assertEquals;
 
 public abstract class BasePage {
 
@@ -30,8 +30,8 @@ public abstract class BasePage {
     private static Properties props = new Properties();
     protected final Logger log = LogManager.getLogger(this);
     private final WebDriver wd;
-    private Wait visibilityWait;
-    private Wait invisibilityWait;
+    private Wait<WebDriver> visibilityWait;
+    private Wait<WebDriver> invisibilityWait;
 
     public BasePage(WebDriver wd) {
         this.wd = wd;
@@ -46,19 +46,19 @@ public abstract class BasePage {
         }
 
         visibilityWait = new FluentWait<WebDriver>(getWebDriverCurrent())
-                .withTimeout(TIME_WAIT_SECONDS * 20, TimeUnit.SECONDS)
+                .withTimeout(TIME_WAIT_SECONDS * 10L, TimeUnit.SECONDS)
                 .pollingEvery(1, TimeUnit.SECONDS)
                 .ignoring(NoSuchElementException.class)
                 .ignoring(StaleElementReferenceException.class);
 
         invisibilityWait
                 = new FluentWait<WebDriver>(getWebDriverCurrent())
-                .withTimeout(TIME_WAIT_SECONDS * 20, TimeUnit.SECONDS)
+                .withTimeout(TIME_WAIT_SECONDS * 10L, TimeUnit.SECONDS)
                 .pollingEvery(10, TimeUnit.MILLISECONDS)
                 .ignoring(NoSuchElementException.class)
                 .ignoring(StaleElementReferenceException.class);
 
-        PageFactory.initElements(wd, this);
+        PageFactory.initElements(new AjaxElementLocatorFactory(wd, TIME_WAIT_SECONDS * 2), this);
     }
 
     protected static Properties getProps() {
@@ -134,15 +134,6 @@ public abstract class BasePage {
         return result;
     }
 
-    protected String getImageNameFromAbsolutePath(File fileToParse) {
-        int indexOfSlash;
-        if (fileToParse.getAbsolutePath().contains("/"))
-            indexOfSlash = fileToParse.getAbsolutePath().lastIndexOf('/');
-        else indexOfSlash = fileToParse.getAbsolutePath().lastIndexOf('\\');
-        int indexOfDot = fileToParse.getAbsolutePath().lastIndexOf('.');
-        return fileToParse.getAbsolutePath().substring(indexOfSlash + 1, indexOfDot);
-    }
-
     protected boolean isElementPresent(final WebElement we) {
         try {
             return we.isDisplayed();
@@ -176,5 +167,36 @@ public abstract class BasePage {
         action.moveToElement(webElement).perform();
     }
 
+    protected Object executeJS(final String script, final Object... params) {
+        return ((JavascriptExecutor) getWebDriverCurrent()).executeScript(script, params);
+    }
+
+    protected WebElement scrollToElement(WebElement we) {
+        /* this serves to avoid 2 problems:
+            1. frozen navigation bar on top of page that overlay elements in case of scroll up
+            2. error notifier that accidentally appears and overlay element also
+        */
+        executeJS("arguments[0].scrollIntoView(true);", we);
+//        executeJS(String.format("javascript:window.scrollBy(%d,%d)", 0, HEADER_HEIGHT));
+        return we;
+    }
+
+    protected String getValueFromElement(WebElement webElement) {
+        return executeJS("return arguments[0].value", webElement).toString();
+    }
+
+    @Step
+    protected void verifyFieldErrorNotifier(WebElement errorNotifierContainer, WebElement errorNotifierFlyOut, String reason) {
+        scrollToElement(errorNotifierContainer);
+        waitForClickable(errorNotifierContainer);
+        moveMouseCursorToWebElement(errorNotifierContainer);
+        waitForVisibility(errorNotifierFlyOut);
+        assertEquals("Hint Text isn't expected", reason, errorNotifierFlyOut.getText());
+    }
+
+    @Step
+    public void refreshPage() {
+        getWebDriverCurrent().navigate().refresh();
+    }
 
 }

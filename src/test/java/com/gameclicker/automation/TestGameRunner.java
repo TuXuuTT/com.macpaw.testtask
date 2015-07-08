@@ -4,8 +4,6 @@ import com.gameclicker.pages.GameStartPage;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.assertTrue;
-
 /**
  * Created by TuXuu on 08.07.2015.
  */
@@ -18,8 +16,8 @@ public class TestGameRunner extends BaseTest {
     }
 
     @Test
-    public void test2() {
-        assertTrue(5 > 1);
+    public void testClickGameRandomly() {
+        startPage.closeNotice();
     }
 
 }
