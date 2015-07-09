@@ -6,7 +6,6 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.PageFactory;
-import org.openqa.selenium.support.pagefactory.AjaxElementLocatorFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Wait;
@@ -58,7 +57,9 @@ public abstract class BasePage {
                 .ignoring(NoSuchElementException.class)
                 .ignoring(StaleElementReferenceException.class);
 
-        PageFactory.initElements(new AjaxElementLocatorFactory(wd, TIME_WAIT_SECONDS * 2), this);
+    /*switch to following if you want to specify exact time for every element to be initialized    */
+//        PageFactory.initElements(new AjaxElementLocatorFactory(wd, 1), this);
+        PageFactory.initElements(getWebDriverCurrent(), this);
     }
 
     protected static Properties getProps() {
@@ -197,6 +198,25 @@ public abstract class BasePage {
     @Step
     public void refreshPage() {
         getWebDriverCurrent().navigate().refresh();
+    }
+
+    protected void waitForElementStopMoving(WebElement element) {
+        Point a;
+        Point b;
+        do {
+            a = element.getLocation();
+            try {
+                Thread.sleep(500L);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            b = element.getLocation();
+        } while (!a.equals(b));
+    }
+
+    protected void pressKey(WebElement element, Keys key) {
+        Actions kpress = new Actions(getWebDriverCurrent());
+        kpress.sendKeys(element, key).perform();
     }
 
 }
