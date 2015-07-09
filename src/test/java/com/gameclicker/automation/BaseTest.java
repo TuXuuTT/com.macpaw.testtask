@@ -21,12 +21,12 @@ public class BaseTest implements IHookable {
     protected final Logger log = LogManager.getLogger(this);
 
     @BeforeClass
-    public static void beforeClass() {
+    public  void beforeClass() {
         wd = WebDriverController.getDriver();
     }
 
     @AfterClass
-    public static void afterClass() {
+    public  void afterClass() {
         if (wd != null) {
             wd.quit();
         }
