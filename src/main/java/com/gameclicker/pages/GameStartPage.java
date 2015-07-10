@@ -67,7 +67,7 @@ public class GameStartPage extends BasePage {
      * comparing current and best score as fastest way to check if game is over yet.
      * "Game Over" label appears too long, will significantly increase run time if check it's presence after each click
      * <p/>
-     * refreshPage() is needed to get valid locators for cells positions as after click there are duplicated deprecated items left.
+     * refreshPage() is needed to get valid locators for cells positions as after clicking arrow button there are duplicated deprecated cells items left.
      */
 
     public GameStartPage pressRandomKeysAndPrintResultUntilGameIsOver() throws InterruptedException {

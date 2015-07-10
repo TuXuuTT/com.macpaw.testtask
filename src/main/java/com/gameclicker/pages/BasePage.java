@@ -1,6 +1,5 @@
 package com.gameclicker.pages;
 
-import com.gameclicker.utils.Browser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.*;
@@ -52,12 +51,7 @@ public abstract class BasePage {
                 .ignoring(NoSuchElementException.class)
                 .ignoring(StaleElementReferenceException.class);
 
-    /*switch to following if you want to specify exact time for every element to be initialized    */
-        if (Browser.getCurrentBrowser().equals(Browser.FIREFOX)) {
-            PageFactory.initElements(new AjaxElementLocatorFactory(wd, 1), this);
-        } else {
-            PageFactory.initElements(getWebDriverCurrent(), this);
-        }
+        PageFactory.initElements(new AjaxElementLocatorFactory(wd, TIME_WAIT_SECONDS), this);
     }
 
     protected static Properties getProps() {
