@@ -1,11 +1,12 @@
 package com.gameclicker.pages;
 
+import com.gameclicker.utils.Browser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.pagefactory.AjaxElementLocatorFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Wait;
@@ -13,19 +14,13 @@ import ru.yandex.qatools.allure.annotations.Step;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-import static org.testng.AssertJUnit.assertEquals;
-
 public abstract class BasePage {
 
     public static final int TIME_WAIT_SECONDS = 10;
-    private static final int SCRIPT_TIME_OUT_WAIT_SECONDS = 60;
-    private static final int PAGE_LOAD_TIME_WAIT_SECONDS = 120;
     private static Properties props = new Properties();
     protected final Logger log = LogManager.getLogger(this);
     private final WebDriver wd;
@@ -58,8 +53,11 @@ public abstract class BasePage {
                 .ignoring(StaleElementReferenceException.class);
 
     /*switch to following if you want to specify exact time for every element to be initialized    */
-//        PageFactory.initElements(new AjaxElementLocatorFactory(wd, 1), this);
-        PageFactory.initElements(getWebDriverCurrent(), this);
+        if (Browser.getCurrentBrowser().equals(Browser.FIREFOX)) {
+            PageFactory.initElements(new AjaxElementLocatorFactory(wd, 1), this);
+        } else {
+            PageFactory.initElements(getWebDriverCurrent(), this);
+        }
     }
 
     protected static Properties getProps() {
@@ -70,8 +68,6 @@ public abstract class BasePage {
         return BasePage.props.getProperty("application.url");
     }
 
-//    protected abstract void checkUniqueElements() throws Error;
-
     protected WebDriver getWebDriverCurrent() {
         return wd;
     }
@@ -80,7 +76,6 @@ public abstract class BasePage {
         log.info("Loading page: {}", getPageURL());
         wd.get(getPageURL());
     }
-
 
     protected void sendKeys(final WebElement webElement, String text) {
         waitForClickable(webElement);
@@ -143,24 +138,6 @@ public abstract class BasePage {
         }
     }
 
-    protected void selectCustomDropDown(WebElement buttonSelect, List<WebElement> optionsLinks, String textToSelect) {
-        waitForClickable(buttonSelect).click();
-        for (WebElement optionLink : optionsLinks) {
-            if (waitForClickable(optionLink).getText().equalsIgnoreCase(textToSelect)) {
-                optionLink.click();
-                break;
-            }
-        }
-    }
-
-    public RemoteWebDriver switchToNewlyOpenedTab() {
-        RemoteWebDriver webDriver;
-        ArrayList<String> currentTabs = new ArrayList<>(getWebDriverCurrent().getWindowHandles());
-        webDriver = (RemoteWebDriver) getWebDriverCurrent().switchTo().window(currentTabs.get(getWebDriverCurrent().getWindowHandles().size() - 1));
-        webDriver.manage().window().maximize();
-        return webDriver;
-    }
-
     protected void moveMouseCursorToWebElement(WebElement webElement) {
 //        scrollToElement(webElement);
         waitForClickable(webElement);
@@ -175,25 +152,13 @@ public abstract class BasePage {
     protected WebElement scrollToElement(WebElement we) {
         /* this serves to avoid 2 problems:
             1. frozen navigation bar on top of page that overlay elements in case of scroll up
-            2. error notifier that accidentally appears and overlay element also
+            2. notification that accidentally appears and overlay element also
         */
         executeJS("arguments[0].scrollIntoView(true);", we);
 //        executeJS(String.format("javascript:window.scrollBy(%d,%d)", 0, HEADER_HEIGHT));
         return we;
     }
 
-    protected String getValueFromElement(WebElement webElement) {
-        return executeJS("return arguments[0].value", webElement).toString();
-    }
-
-    @Step
-    protected void verifyFieldErrorNotifier(WebElement errorNotifierContainer, WebElement errorNotifierFlyOut, String reason) {
-        scrollToElement(errorNotifierContainer);
-        waitForClickable(errorNotifierContainer);
-        moveMouseCursorToWebElement(errorNotifierContainer);
-        waitForVisibility(errorNotifierFlyOut);
-        assertEquals("Hint Text isn't expected", reason, errorNotifierFlyOut.getText());
-    }
 
     @Step
     public void refreshPage() {

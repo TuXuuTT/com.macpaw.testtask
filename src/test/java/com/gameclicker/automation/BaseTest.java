@@ -30,6 +30,7 @@ public class BaseTest implements IHookable {
         if (wd != null) {
             wd.quit();
         }
+        log.info("Test class has completed its execution \n");
     }
 
     protected static WebDriver getWdInstance() {

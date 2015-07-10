@@ -39,14 +39,14 @@ public class GameStartPage extends BasePage {
     @FindBy(css = ".notice-close-button")
     private WebElement buttonNoticeClose;
 
-    @FindBy(css = "form.pp-donate input")
+    @FindBy(css = ".grid-container")
     private WebElement gridContainer;
 
     @FindAll(@FindBy(xpath = "//div[contains(@class, 'tile-position')]"))
     private List<WebElement> tilePositions;
 
-    @FindAll(@FindBy(css = ".tile-inner"))
-    private List<WebElement> tilesInnerValues;
+    @FindBy(css = ".tile-inner")
+    private WebElement tilesInnerValue;
 
     @FindBy(css = ".game-over p")
     private WebElement labelGameOver;
@@ -66,7 +66,7 @@ public class GameStartPage extends BasePage {
     /**
      * comparing current and best score as fastest way to check if game is over yet.
      * "Game Over" label appears too long, will significantly increase run time if check it's presence after each click
-     *
+     * <p/>
      * refreshPage() is needed to get valid locators for cells positions as after click there are duplicated deprecated items left.
      */
 
@@ -78,9 +78,8 @@ public class GameStartPage extends BasePage {
                 printTilesValuesTableIntoLog(i);
                 pressRandomArrowKey();
                 i++;
-//                Thread.sleep(500);
                 refreshPage();
-                waitForVisibility(tilesInnerValues.get(0));
+                waitForVisibility(tilesInnerValue);
             } else {
                 isGameOver = true;
             }
@@ -91,7 +90,7 @@ public class GameStartPage extends BasePage {
     }
 
     public void showCurrentScore() {
-        log.info("\n================\n Game over. Your score is: {} \n================\n", labelBestContainer.getText());
+        log.info("\n================================\n Game over. Your score is: {} \n================================\n", labelBestContainer.getText());
     }
 
     public GameStartPage pressRandomArrowKey() {

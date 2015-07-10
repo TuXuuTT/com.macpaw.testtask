@@ -17,10 +17,16 @@ public class TestGameRunner extends BaseTest {
         startPage = new GameStartPage(getWdInstance());
     }
 
+/**
+ * testClickGameRandomly() performs random actions in 2048 game, prints current game field to both console ant log.file
+ * When game is over, result is printed as well, then page closes and WebDriver quits.
+ * */
+
     @Test
     public void testClickGameRandomly() throws InterruptedException {
-        startPage.closeNotice()
-                .pressRandomKeysAndPrintResultUntilGameIsOver()
+        startPage.closeNotice();
+
+        startPage.pressRandomKeysAndPrintResultUntilGameIsOver()
                 .showCurrentScore();
     }
 
